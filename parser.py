@@ -47,6 +47,7 @@ def get_evidence_list(supporting_studies) -> list:
             "sentence": sentence,
             "subject_spans": subject_span,
             "object_spans": object_span,
+            "feedback_url": study["value_url"],
             "provided_by": study["attribute_source"]
         }
         if agreement:
@@ -74,25 +75,43 @@ def load_data(data_folder):
         for line in reader:
             if line[0].upper() in EXCLUDE_LIST or line[2].upper() in EXCLUDE_LIST:
                 continue
+            if line[0] not in entity_dict.keys() or line[2] not in entity_dict.keys():
+                continue
             attributes_blob = json.loads(line[-1])
             supporting_studies = get_attribute_list(attributes_blob, 'biolink:supporting_study_result')
             evidences = get_evidence_list(supporting_studies)
             subject_parts = line[0].split(':')
             object_parts = line[2].split(':')
-            short_predicate = 'false'
-            if 'positively' in line[1]:
-                short_predicate = 'positive'
-            elif 'negatively' in line[1]:
-                short_predicate = 'negative'
+            predicate_part = line[1].replace('biolink:', '')
+            additional_predicate = '_'.join([pred.replace('biolink:', '') for pred in line[3:13] if len(pred) > 0])
+            if len(additional_predicate) > 0:
+                predicate_part += '_' + additional_predicate
+            edge_label = line[1].replace('biolink:', '')
+            if edge_label == 'affects':
+                if line[3] == 'biolink:causes':
+                    if line[8] == 'biolink:activity_or_abundance':
+                        if line[9] == 'biolink:increased':
+                            edge_label = 'entity_positively_regulates_entity'
+                            predicate_part = 'positive'
+                        elif line[9] == 'biolink:decreased':
+                            edge_label = 'entity_negatively_regulates_entity'
+                            predicate_part = 'negative'
+                elif line[3] == 'biolink:contributes_to':
+                    if line[7] == 'biolink:gain_of_function_variant_form':
+                        edge_label = 'gain_of_function_contributes_to'
+                        predicate_part = 'gain'
+                    elif line[7] == 'biolink:loss_of_function_variant_form':
+                        edge_label = 'loss_of_function_contributes_to'
+                        predicate_part = 'loss'
             yield {
-                "_id": f"{line[3]}-{short_predicate}",
+                "_id": f"{line[13]}-{predicate_part}",
                 "subject": {
                     "id": line[0],
                     subject_parts[0]: line[0] if subject_parts[0] in prefix_list else subject_parts[1],
                     "type": entity_dict[line[0]][1].split(':')[-1]
                 },
                 "association": {
-                    "edge_label": line[1].split(':')[-1],
+                    "edge_label": edge_label,
                     "evidence_count": get_attribute_object(attributes_blob, "biolink:has_evidence_count")["value"],
                     "evidence": evidences,
                     "edge_attributes": json.loads(line[-1])
@@ -136,6 +155,9 @@ def targeted_mapping(cls):
                             "type": "keyword"
                         },
                         "sentence": {
+                            "type": "text"
+                        },
+                        "feedback_url": {
                             "type": "text"
                         },
                         "agrees_with": {
