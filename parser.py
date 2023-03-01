@@ -89,18 +89,18 @@ def load_data(data_folder):
             edge_label = line[1].replace('biolink:', '')
             if edge_label == 'affects':
                 if line[3] == 'biolink:causes':
-                    if line[8] == 'biolink:activity_or_abundance':
-                        if line[9] == 'biolink:increased':
+                    if line[8] == 'activity_or_abundance':
+                        if line[9] == 'increased':
                             edge_label = 'entity_positively_regulates_entity'
                             predicate_part = 'positive'
-                        elif line[9] == 'biolink:decreased':
+                        elif line[9] == 'decreased':
                             edge_label = 'entity_negatively_regulates_entity'
                             predicate_part = 'negative'
                 elif line[3] == 'biolink:contributes_to':
-                    if line[7] == 'biolink:gain_of_function_variant_form':
+                    if line[7] == 'gain_of_function_variant_form':
                         edge_label = 'gain_of_function_contributes_to'
                         predicate_part = 'gain'
-                    elif line[7] == 'biolink:loss_of_function_variant_form':
+                    elif line[7] == 'loss_of_function_variant_form':
                         edge_label = 'loss_of_function_contributes_to'
                         predicate_part = 'loss'
             yield {
