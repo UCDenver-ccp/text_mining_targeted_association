@@ -35,14 +35,16 @@ def get_attribute_list(blob, attribute_type_id) -> list:
 def get_evidence_list(supporting_studies) -> list:
     evidence_list = []
     for study in supporting_studies:
-        publication = get_attribute_object(study["attributes"], "biolink:publications")["value"]
+        publication_string = get_attribute_object(study["attributes"], "biolink:publications")["value"]
         score = get_attribute_object(study["attributes"], "biolink:extraction_confidence_score")["value"]
         sentence = get_attribute_object(study["attributes"], "biolink:supporting_text")["value"]
         subject_span = get_attribute_object(study["attributes"], "biolink:subject_location_in_text")["value"]
         object_span = get_attribute_object(study["attributes"], "biolink:object_location_in_text")["value"]
         agreement = get_attribute_object(study["attributes"], "biolink:agrees_with_data_source")
+        publication_list = [pub.replace('PMC', 'PMC:') if pub.startswith('PMC') and ':' not in pub else pub
+                            for pub in publication_string.split('|')]
         evidence = {
-            "publications": publication,
+            "publications": publication_list,
             "score": score,
             "sentence": sentence,
             "subject_spans": subject_span,
@@ -114,13 +116,19 @@ def load_data(data_folder):
                     "edge_label": edge_label,
                     "evidence_count": get_attribute_object(attributes_blob, "biolink:evidence_count")["value"],
                     "evidence": evidences,
-                    "edge_attributes": json.loads(line[-1])
+                    "edge_attributes": json.loads(line[-1]),
+                    "sources": [
+                        {
+                            "resource_id": "infores:text-mining-provider-cooccurrence",
+                            "resource_role": "primary_knowledge_source"
+                        }
+                    ]
                 },
                 "object": {
                     "id": line[2],
                     object_parts[0]: line[2] if object_parts[0] in prefix_list else object_parts[1],
                     "type": entity_dict[line[2]][1].split(':')[-1]
-                },
+                }
             }
 
 
