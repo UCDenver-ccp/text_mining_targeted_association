@@ -223,6 +223,18 @@ def targeted_mapping(cls):
                             "type": "text"
                         }
                     }
+                },
+                "sources": {
+                    "properties": {
+                        "resource_id": {
+                            "normalizer": "keyword_lowercase_normalizer",
+                            "type": "keyword"
+                        },
+                        "resource_role": {
+                            "normalizer": "keyword_lowercase_normalizer",
+                            "type": "keyword"
+                        }
+                    }
                 }
             }
         },
