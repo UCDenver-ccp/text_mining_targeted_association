@@ -119,7 +119,7 @@ def load_data(data_folder):
                     "edge_attributes": json.loads(line[-1]),
                     "sources": [
                         {
-                            "resource_id": "infores:text-mining-provider-cooccurrence",
+                            "resource_id": "infores:text-mining-provider-targeted",
                             "resource_role": "primary_knowledge_source"
                         }
                     ]
