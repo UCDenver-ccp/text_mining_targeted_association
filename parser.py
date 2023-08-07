@@ -167,10 +167,6 @@ def targeted_mapping(cls):
                         },
                         "feedback_url": {
                             "type": "text"
-                        },
-                        "agrees_with": {
-                            "normalizer": "keyword_lowercase_normalizer",
-                            "type": "keyword"
                         }
                     }
                 },
