@@ -40,7 +40,6 @@ def get_evidence_list(supporting_studies) -> list:
         sentence = get_attribute_object(study["attributes"], "biolink:supporting_text")["value"]
         subject_span = get_attribute_object(study["attributes"], "biolink:subject_location_in_text")["value"]
         object_span = get_attribute_object(study["attributes"], "biolink:object_location_in_text")["value"]
-        agreement = get_attribute_object(study["attributes"], "biolink:agrees_with_data_source")
         publication_list = [pub.replace('PMC', 'PMC:') if pub.startswith('PMC') and ':' not in pub else pub
                             for pub in publication_string.split('|')]
         evidence = {
@@ -52,8 +51,6 @@ def get_evidence_list(supporting_studies) -> list:
             "feedback_url": study["value_url"],
             "provided_by": study["attribute_source"]
         }
-        if agreement:
-            evidence["agrees_with"] = agreement["value"]
         evidence_list.append(evidence)
     return evidence_list
 
@@ -105,6 +102,9 @@ def load_data(data_folder):
                     elif line[7] == 'loss_of_function_variant_form':
                         edge_label = 'loss_of_function_contributes_to'
                         predicate_part = 'loss'
+            elif edge_label == 'treats':
+                edge_label = 'treats_or_applied_or_studied_to_treat'
+                predicate_part = 'treats_or_applied_or_studied_to_treat'
             yield {
                 "_id": f"{line[13]}-{predicate_part}",
                 "subject": {
