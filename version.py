@@ -5,10 +5,11 @@ def get_release(self):
     # https://github.com/biothings/biothings.api/blob/master/biothings/hub/dataload/dumper.py
     import requests
     import datetime
-    res = requests.get("https://storage.googleapis.com/translator-text-workflow-dev-public/kgx/UniProt/nodes.tsv.gz")
-    try:
-        last_modified = res.headers.get("Last-Modified", "1.1")
-        dt = datetime.datetime.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
-        return dt.date().isoformat()
-    except:
-        return "1.1"
+    res = requests.get("https://storage.googleapis.com/translator-text-workflow-dev-public/kgx/UniProt/version.txt")
+    if res.status_code == 200:
+        file_content = res.text
+        # Extract the first line which contains the version
+        version = file_content.splitlines()[0]
+        return version
+    else:
+        return str(datetime.date.today())
